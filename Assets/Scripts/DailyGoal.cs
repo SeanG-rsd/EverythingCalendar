@@ -20,5 +20,8 @@ public class DailyGoal : MonoBehaviour
         this.goal = goal;
         countPerDay = perDay;
         currentNumberOfCompletionsToday = currentCount;
+
+        goalText.text = goal;
+        completedCountText.text = currentNumberOfCompletionsToday.ToString() + "/" + countPerDay.ToString();
     }
 }
