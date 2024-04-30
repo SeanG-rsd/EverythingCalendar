@@ -20,12 +20,30 @@ public class DailyGoalList : MonoBehaviour
     [Header("---Visual List---")]
     [SerializeField] private GameObject dailyGoalPrefab;
     [SerializeField] private Transform goalContainer;
+    private List<DailyGoal> dailyGoalList;
 
     private void Start()
     {
         currentInfo = new DailyGoalInfo();
+        dailyGoalList = new List<DailyGoal>();
         LoadFromJson();
         LoadGoals();
+
+        UpdateDay(currentInfo.lastLoadedDay);
+
+        DateTime startOfLastLoadedYear = new DateTime(DateTime.Now.Year, 1, 1);
+        Debug.Log(startOfLastLoadedYear.ToString());
+        Debug.Log(startOfLastLoadedYear.DayOfYear);
+    }
+
+    private void Awake()
+    {
+        
+    }
+
+    private void OnDestroy()
+    {
+        
     }
 
     private void UpdateDay(string last)
@@ -33,15 +51,76 @@ public class DailyGoalList : MonoBehaviour
         DateTime lastSave = DateTime.Parse(last);
         DateTime dateTime = DateTime.Now;
         
-        if (lastSave.DayOfYear < dateTime.DayOfYear)
+        if (lastSave.DayOfYear < dateTime.DayOfYear && lastSave.Year == dateTime.Year)
         {
             Debug.Log("new day");
+            NewDay(dateTime);
+            UpdateWeek(lastSave, dateTime);
         }
         else if (lastSave.Year < dateTime.Year)
         {
             Debug.Log("new year");
+            NewDay(dateTime);
+            UpdateWeek(lastSave, dateTime);
         }
         Debug.Log(dateTime.DayOfYear);
+
+        
+    }
+
+    private void UpdateWeek(DateTime last, DateTime now) // NEED TO COME BACK TO THIS
+    {
+        int day = 1;
+        DateTime startOfLastLoadedYear = new DateTime(last.Year, 1, day);
+        while ((int)startOfLastLoadedYear.DayOfWeek != 1)
+        {
+            day++;
+            startOfLastLoadedYear = new DateTime(last.Year, 1, day);
+        }
+
+        int lastLoadedWeek = (last.DayOfYear - day) / 7;
+        if (last.DayOfYear % 7 == 0) lastLoadedWeek--;
+
+        int currentWeek = (now.DayOfYear - day) / 7;
+        if (now.DayOfYear % 7 == 0) currentWeek--;
+
+        if (last.DayOfWeek == 0)
+        {
+            Debug.Log("was last a sunday");
+        }
+        if (currentWeek > lastLoadedWeek && last.Year == now.Year)
+        {
+            Debug.Log("new week");
+        }
+        else if (currentWeek == 0 && now.DayOfYear - last.DayOfWeek == 0)
+        {
+
+        }
+        else if (last.Year > now.Year && now.DayOfYear > 7)
+        {
+            Debug.Log("new week");
+        }
+    }
+
+    private void NewDay(DateTime today)
+    {
+        // check if they were completed
+        for (int i = 0; i < currentInfo.numberOfGoals; i++)
+        {
+            // update completed times per week
+            if (dailyGoalList[i].IsCompleted())
+            {
+                currentInfo.thisWeeksProgress[i]++;
+                Debug.Log("did complete a task yesterday");
+            }
+
+            // update priority for new day
+            dailyGoalList[i].NewDay(7 - (int)today.DayOfWeek == 0 ? 6 : (int)today.DayOfWeek - 1, currentInfo.numberPerWeek[i] - currentInfo.thisWeeksProgress[i]);
+        }
+
+        // update priority for new day
+
+        currentInfo.NewDay(); // resets daily goals
     }
 
     public void SaveToJson()
@@ -57,14 +136,13 @@ public class DailyGoalList : MonoBehaviour
 
     public void LoadFromJson()
     {
-
         string json = File.ReadAllText(Application.dataPath + "/DailyInfoFile.json");
         currentInfo = JsonUtility.FromJson<DailyGoalInfo>(json);
 
         Debug.Log(currentInfo.goalNames[currentInfo.numberOfGoals - 1]);
         Debug.Log(currentInfo.lastLoadedDay);
 
-        UpdateDay(currentInfo.lastLoadedDay);
+        
     }
 
     public void CloseTaskMaker()
@@ -79,10 +157,14 @@ public class DailyGoalList : MonoBehaviour
 
     private void LoadGoals()
     {
+        DateTime today = DateTime.Now;
         for (int i = 0; i < currentInfo.numberOfGoals; i++)
         {
             GameObject newGoal = Instantiate(dailyGoalPrefab, goalContainer);
-            newGoal.GetComponent<DailyGoal>().Initialize(currentInfo.goalNames[i], currentInfo.numberPerDay[i], currentInfo.thisDaysProgress[i], 0);
+            DailyGoal dailyGoal = newGoal.GetComponent<DailyGoal>();
+            dailyGoal.Initialize(currentInfo.goalNames[i], currentInfo.numberPerDay[i], currentInfo.thisDaysProgress[i], 7 - (int)today.DayOfWeek == 0 ? 6 : (int)today.DayOfWeek - 1, currentInfo.numberPerWeek[i] - currentInfo.thisWeeksProgress[i]);
+            dailyGoalList.Add(dailyGoal);
+            Debug.Log("added");
         }
     }
 }

@@ -949,3 +949,9 @@ MonoBehaviour:
   goalText: {fileID: 1776484399238198304}
   completedCountText: {fileID: 7852024704563667314}
   progressMask: {fileID: 7470890831618475250}
+  urgencyImage: {fileID: 1757891468215193690}
+  urgencyChart:
+  - {r: 0.042507622, g: 0.4528302, b: 0, a: 1}
+  - {r: 1, g: 0.3160377, b: 0.3160377, a: 1}
+  - {r: 1, g: 0.5056666, b: 0.30588233, a: 1}
+  - {r: 1, g: 0.85540086, b: 0.19339621, a: 1}
