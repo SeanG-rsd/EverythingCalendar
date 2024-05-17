@@ -54,7 +54,7 @@ public class ToDoList : MonoBehaviour
         try
         {
             string completed = PlayerPrefs.GetString(completedTasksKey);
-            Debug.Log(completed);
+            //Debug.Log(completed);
             string[] tasks = completed.Split(seperator);
 
             
@@ -76,7 +76,7 @@ public class ToDoList : MonoBehaviour
         try
         {
             string completed = PlayerPrefs.GetString(unCompletedTasksKey);
-            Debug.Log(completed);
+            //Debug.Log(completed);
             string[] tasks = completed.Split(seperator);
 
             foreach (string task in tasks)

@@ -9,7 +9,6 @@ using UnityEngine.UI;
 public class DailyGoal : MonoBehaviour
 {
     [SerializeField] private TMP_Text goalText;
-    private string goal;
 
     private int countPerDay;
     [SerializeField] private TMP_Text completedCountText;
@@ -17,40 +16,41 @@ public class DailyGoal : MonoBehaviour
 
     private int currentNumberOfCompletionsToday;
 
-    public static Action<GameObject> OnClickCompleted = delegate { };
-    public static Action<GameObject> OnClickUndo = delegate { };
+    public static Action<int, int> OnClickCompleted = delegate { };
+    public static Action<int, int> OnClickUndo = delegate { };
 
     [SerializeField] private Image urgencyImage;
     [SerializeField] private Color[] urgencyChart;
 
-    public void Initialize(string goal, int perDay, int currentCount, int daysLeftInWeek, int goalsLeftInWeek)
+    private int index;
+
+    public void Initialize(string goal, int perDay, int currentCount, int daysLeftInWeek, int goalsLeftInWeek, int index)
     {
-        this.goal = goal;
+        this.index = index;
         countPerDay = perDay;
         currentNumberOfCompletionsToday = currentCount;
 
         goalText.text = goal;
-        completedCountText.text = currentNumberOfCompletionsToday.ToString() + "/" + countPerDay.ToString();
+        UpdateVisual();
 
         UpdatePriority(daysLeftInWeek, goalsLeftInWeek);
     }
 
     public bool IsCompleted()
     {
-        return currentNumberOfCompletionsToday >= countPerDay;
+        return currentNumberOfCompletionsToday == countPerDay;
     }
 
     public void UpdatePriority(int daysLeftInWeek, int goalsLeftInWeek)
-    {
-        
-        int numberOfFreeDays = 7 - daysLeftInWeek - goalsLeftInWeek;
-        Debug.Log("update priority : " + numberOfFreeDays);
+    {      
+        int numberOfFreeDays = daysLeftInWeek - goalsLeftInWeek;
+        //Debug.Log("update priority : " + numberOfFreeDays);
 
-        if (goalsLeftInWeek == 0)
+        if (goalsLeftInWeek == 0 || IsCompleted())
         {
             urgencyImage.color = urgencyChart[0];
         }
-        else if (numberOfFreeDays == 0)
+        else if (numberOfFreeDays <= 0)
         {
             urgencyImage.color = urgencyChart[1];
         }
@@ -67,20 +67,33 @@ public class DailyGoal : MonoBehaviour
     public void NewDay(int daysLeftInWeek, int goalsLeftInWeek)
     {
         currentNumberOfCompletionsToday = 0;
-        completedCountText.text = currentNumberOfCompletionsToday.ToString() + "/" + countPerDay.ToString();
+        UpdateVisual();
 
         UpdatePriority(daysLeftInWeek, goalsLeftInWeek);
     }
 
     public void CompleteGoal()
     {
-        currentNumberOfCompletionsToday++;
-        OnClickCompleted?.Invoke(gameObject);
+        if (!IsCompleted())
+        {
+            currentNumberOfCompletionsToday = Mathf.Clamp(currentNumberOfCompletionsToday + 1, 0, countPerDay);
+            UpdateVisual();
+            OnClickCompleted?.Invoke(index, currentNumberOfCompletionsToday);
+        }
     }
 
     public void UnCompleteGoal()
     {
-        currentNumberOfCompletionsToday--;
-        OnClickUndo?.Invoke(gameObject);
+        if (currentNumberOfCompletionsToday > 0)
+        {
+            currentNumberOfCompletionsToday = Mathf.Clamp(currentNumberOfCompletionsToday - 1, 0, countPerDay);
+            UpdateVisual();
+            OnClickUndo?.Invoke(index, currentNumberOfCompletionsToday);
+        }
+    }
+
+    private void UpdateVisual()
+    {
+        completedCountText.text = currentNumberOfCompletionsToday.ToString() + "/" + countPerDay.ToString();
     }
 }
