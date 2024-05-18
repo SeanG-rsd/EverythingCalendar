@@ -16,6 +16,20 @@ public class DailyGoalList : MonoBehaviour
     [SerializeField] private TMP_InputField numberPerDayInput;
     [SerializeField] private Slider numberPerWeek;
 
+    [Header("---Editor---")]
+    [SerializeField] private GameObject taskEditor;
+    [SerializeField] private GameObject choicePrefab;
+    [SerializeField] private TMP_InputField goalNameEdit;
+    [SerializeField] private TMP_InputField numberPerDayEdit;
+    [SerializeField] private Slider numberPerWeekEdit;
+    [SerializeField] private RectTransform editorContentBox;
+
+    [SerializeField] private GameObject chooseEdit;
+    [SerializeField] private GameObject editInfo;
+
+    private List<EditChoice> editChoices;
+    private int currentEditIndex = -1;
+
     [Header("---Visual List---")]
     [SerializeField] private GameObject dailyGoalPrefab;
     [SerializeField] private Transform goalContainer;
@@ -31,9 +45,11 @@ public class DailyGoalList : MonoBehaviour
     {
         currentInfo = new DailyGoalInfo();
         dailyGoalList = new List<DailyGoal>();
+        editChoices = new List<EditChoice>();
         progressBarMaskWidth = progressBarMask.rect.width;
         LoadFromJson();
         LoadGoals();
+        LoadEditor();
 
         UpdateDay(currentInfo.lastLoadedDay);
     }
@@ -42,12 +58,14 @@ public class DailyGoalList : MonoBehaviour
     {
         DailyGoal.OnClickCompleted += HandleCompletedOne;
         DailyGoal.OnClickUndo += HandleUncompletedOne;
+        EditChoice.OnChooseEdit += HandleChooseToEdit;
     }
 
     private void OnDestroy()
     {
         DailyGoal.OnClickCompleted -= HandleCompletedOne;
         DailyGoal.OnClickUndo -= HandleUncompletedOne;
+        EditChoice.OnChooseEdit -= HandleChooseToEdit;
     }
 
     private void HandleCompletedOne(int index, int completions)
@@ -76,6 +94,17 @@ public class DailyGoalList : MonoBehaviour
         UpdateProgressBar();
     }
 
+    private void HandleChooseToEdit(int index)
+    {
+        chooseEdit.SetActive(false);
+        editInfo.SetActive(true);
+
+        goalNameEdit.text = currentInfo.goalNames[index];
+        numberPerDayEdit.text = currentInfo.numberPerDay[index].ToString();
+        numberPerWeekEdit.value = currentInfo.numberPerWeek[index];
+        currentEditIndex = index;
+    }
+
     private void UpdateProgressBar()
     {
         int goalsToday = 0;
@@ -98,7 +127,8 @@ public class DailyGoalList : MonoBehaviour
 
         todayText.text = dateTime.ToString("MMM dd, yyyy");
 
-        daysLeftInTheWeek = 7 - (int)dateTime.DayOfWeek == 0 ? 6 : (int)dateTime.DayOfWeek - 1;
+        daysLeftInTheWeek = 7 - (dateTime.DayOfWeek == 0 ? 6 : (int)dateTime.DayOfWeek - 1);
+        Debug.Log(daysLeftInTheWeek);
 
         if (lastSave.DayOfYear < dateTime.DayOfYear && lastSave.Year == dateTime.Year)
         {
@@ -202,25 +232,73 @@ public class DailyGoalList : MonoBehaviour
         currentInfo = JsonUtility.FromJson<DailyGoalInfo>(json);
     }
 
-    public void CloseTaskMaker()
+    public void ToggleTaskMaker()
     {
-        taskMaker.SetActive(false);
+        taskMaker.SetActive(!taskMaker.activeSelf);
     }
 
-    public void OpenTaskMaker()
+    public void ToggleTaskEditor()
     {
-        taskMaker.SetActive(true);
+        chooseEdit.SetActive(!taskMaker.activeSelf);
+        editInfo.SetActive(taskMaker.activeSelf);
+        taskEditor.SetActive(!taskEditor.activeSelf);
+    }
+
+    public void FinishedEditingGoal()
+    {
+        currentInfo.goalNames[currentEditIndex] = goalNameEdit.text;
+        currentInfo.numberPerDay[currentEditIndex] = Convert.ToInt32(numberPerDayEdit.text);
+        currentInfo.thisDaysProgress[currentEditIndex] = 0;
+        currentInfo.numberPerWeek[currentEditIndex] = (int)numberPerWeekEdit.value;
+
+        chooseEdit.SetActive(true);
+        editInfo.SetActive(false);
+
+        // update all other lists
+
+        dailyGoalList[currentEditIndex].Initialize(goalNameEdit.text, currentInfo.numberPerDay[currentEditIndex], 0, daysLeftInTheWeek, currentInfo.numberPerWeek[currentEditIndex] - currentInfo.thisWeeksProgress[currentEditIndex], currentEditIndex);
+        editChoices[currentEditIndex].Initialize(goalNameEdit.text, currentEditIndex);
+
+        UpdateJson();
+        UpdateProgressBar();
+    }
+
+    public void RemoveGoal()
+    {
+        Destroy(dailyGoalList[currentEditIndex].gameObject);
+        Destroy(editChoices[currentEditIndex].gameObject);
+
+        dailyGoalList.RemoveAt(currentEditIndex);
+        editChoices.RemoveAt(currentEditIndex);
+
+        currentInfo.RemoveGoal(currentEditIndex);
+
+        chooseEdit.SetActive(true);
+        editInfo.SetActive(false);
+
+        UpdateJson();
+        UpdateProgressBar();
     }
 
     private void LoadGoals()
     {
-        DateTime today = DateTime.Now;
         for (int i = 0; i < currentInfo.numberOfGoals; i++)
         {
             GameObject newGoal = Instantiate(dailyGoalPrefab, goalContainer);
             DailyGoal dailyGoal = newGoal.GetComponent<DailyGoal>();
-            dailyGoal.Initialize(currentInfo.goalNames[i], currentInfo.numberPerDay[i], currentInfo.thisDaysProgress[i], 7 - (int)today.DayOfWeek == 0 ? 6 : (int)today.DayOfWeek - 1, currentInfo.numberPerWeek[i] - currentInfo.thisWeeksProgress[i], i);
+            dailyGoal.Initialize(currentInfo.goalNames[i], currentInfo.numberPerDay[i], currentInfo.thisDaysProgress[i], daysLeftInTheWeek, currentInfo.numberPerWeek[i] - currentInfo.thisWeeksProgress[i], i);
             dailyGoalList.Add(dailyGoal);
+        }
+    }
+
+    private void LoadEditor()
+    {
+        for (int i = 0; i < currentInfo.numberOfGoals; i++)
+        {
+            GameObject newChoice = Instantiate(choicePrefab, editorContentBox);
+            EditChoice editChoice = newChoice.GetComponent<EditChoice>();
+            editChoice.Initialize(currentInfo.goalNames[i], i);
+            editChoices.Add(editChoice);
         }
     }
 }

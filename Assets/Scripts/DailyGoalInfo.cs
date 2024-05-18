@@ -39,4 +39,24 @@ public class DailyGoalInfo
     {
         thisDaysProgress = new int[listSize];
     }
+
+    public void RemoveGoal(int index)
+    {
+        for (int i = index + 1; i < numberOfGoals; i++)
+        {
+            goalNames[i - 1] = goalNames[i];
+            numberPerWeek[i - 1] = numberPerWeek[i];
+            numberPerDay[i - 1] = numberPerDay[i];
+            thisDaysProgress[i - 1] = thisDaysProgress[i];
+            thisWeeksProgress[i - 1] = thisWeeksProgress[i];
+        }
+
+        numberOfGoals--;
+        goalNames[numberOfGoals] = "";
+        numberPerWeek[numberOfGoals] = 0;
+        numberPerDay[numberOfGoals] = 0;
+        thisWeeksProgress[numberOfGoals] = 0;
+        thisDaysProgress[numberOfGoals] = 0;
+        
+    }
 }
