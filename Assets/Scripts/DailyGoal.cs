@@ -53,7 +53,7 @@ public class DailyGoal : MonoBehaviour
     public void UpdatePriority(int daysLeftInWeek, int goalsLeftInWeek)
     {      
         int numberOfFreeDays = daysLeftInWeek - goalsLeftInWeek;
-        //Debug.Log("update priority for " + goalText.text + ": " + goalsLeftInWeek);
+        Debug.Log("update priority for " + goalText.text + ": " + daysLeftInWeek);
 
         if (goalsLeftInWeek == 0 || IsCompleted())
         {

@@ -48,6 +48,7 @@ public class DailyGoalList : MonoBehaviour
         editChoices = new List<EditChoice>();
         progressBarMaskWidth = progressBarMask.rect.width;
         LoadFromJson();
+        
         LoadGoals();
         LoadEditor();
 
@@ -127,7 +128,7 @@ public class DailyGoalList : MonoBehaviour
 
         todayText.text = dateTime.ToString("MMM dd, yyyy");
 
-        daysLeftInTheWeek = 7 - (dateTime.DayOfWeek == 0 ? 6 : (int)dateTime.DayOfWeek - 1);
+        daysLeftInTheWeek = 7 - (dateTime.DayOfWeek == 0 ? 1 : (int)dateTime.DayOfWeek - 1);
         Debug.Log(daysLeftInTheWeek);
 
         if (lastSave.DayOfYear < dateTime.DayOfYear && lastSave.Year == dateTime.Year)
@@ -186,6 +187,7 @@ public class DailyGoalList : MonoBehaviour
         for (int i = 0; i < currentInfo.numberOfGoals; i++)
         {
             // update priority for new day
+            Debug.Log(i);
             dailyGoalList[i].NewDay(daysLeftInTheWeek, currentInfo.numberPerWeek[i] - currentInfo.thisWeeksProgress[i]);
         }
 

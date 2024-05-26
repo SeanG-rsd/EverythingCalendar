@@ -46,14 +46,15 @@ public class Calendar : MonoBehaviour
 
         monthYearTitle.text = monthNames[lastLoadedMonth.Month - 1] + ", " + lastLoadedMonth.Year.ToString();
 
-        int startingDay = (int)startingDayOfMonth.DayOfWeek;
+        int startingDay = startingDayOfMonth.DayOfWeek == 0 ? 6 : (int)startingDayOfMonth.DayOfWeek - 1;
         int daysInMonth = DateTime.DaysInMonth(year, month);
+        //Debug.Log(today.Day);
 
         for (int i = 0; i < days.Count; i++)
         {
             if (i >= startingDay && i < daysInMonth + startingDay)
             {
-                days[i].SetActive(i - startingDay + 1, today.Year == year && today.Month == month && today.Day == i);
+                days[i].SetActive(i - startingDay + 1, today.Year == year && today.Month == month && today.Day == i - 1);
             }
             else days[i].TurnOff();
         }
