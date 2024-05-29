@@ -10,6 +10,7 @@ public class HomeworkInfo
     public string[] dueDates;
     public string[] subject;
     public float[] predictedHours;
+    public string[] notes;
     public string[] subjects;
     public int numberOfSubjects;
 
@@ -23,6 +24,7 @@ public class HomeworkInfo
         subject = new string[maxNumberOfAssignments];
         predictedHours = new float[maxNumberOfAssignments];
         subjects = new string[maxNumberOfAssignments];
+        notes = new string[maxNumberOfAssignments];
     }
 
     public void AddNewAssignment(string name, string dueDate, string subject, float predictedHours)
@@ -31,7 +33,27 @@ public class HomeworkInfo
         dueDates[numberOfAssignments] = dueDate;
         this.subject[numberOfAssignments] = subject;
         this.predictedHours[numberOfAssignments] = predictedHours;
+        notes[numberOfAssignments] = "";
         numberOfAssignments++;
+    }
+
+    public void RemoveAssignment(int index)
+    {
+        for (int i = index + 1; i < numberOfAssignments; i++)
+        {
+            homeworkNames[i - 1] = homeworkNames[i];
+            dueDates[i - 1] = dueDates[i];
+            subject[i - 1] = subjects[i];
+            predictedHours[i - 1] = predictedHours[i];
+            notes[i - 1] = notes[i];
+        }
+
+        numberOfAssignments--;
+        homeworkNames[numberOfAssignments] = "";
+        notes[numberOfAssignments] = "";
+        dueDates[numberOfAssignments] = "";
+        subject[numberOfAssignments] = "";
+        predictedHours[numberOfAssignments] = 0;
     }
 
     public void AddNewSubject(string name)
