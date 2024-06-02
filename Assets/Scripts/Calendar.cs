@@ -44,19 +44,18 @@ public class Calendar : MonoBehaviour
         lastLoadedMonth = startingDayOfMonth;
         DateTime today = DateTime.Now;
 
-        monthYearTitle.text = monthNames[lastLoadedMonth.Month - 1] + ", " + lastLoadedMonth.Year.ToString();
+        monthYearTitle.text = startingDayOfMonth.ToString("MMMM, yyyy");
 
         int startingDay = startingDayOfMonth.DayOfWeek == 0 ? 6 : (int)startingDayOfMonth.DayOfWeek - 1;
         int daysInMonth = DateTime.DaysInMonth(year, month);
-        //Debug.Log(today.Day);
 
-        for (int i = 0; i < days.Count; i++)
+        for (int i = 1; i <= days.Count; i++)
         {
-            if (i >= startingDay && i < daysInMonth + startingDay)
+            if (i > startingDay && i <= daysInMonth + startingDay)
             {
-                days[i].SetActive(i - startingDay + 1, today.Year == year && today.Month == month && today.Day == i - 1);
+                days[i - 1].SetActive(i - startingDay, today.Year == year && today.Month == month && today.Day == i - startingDay);
             }
-            else days[i].TurnOff();
+            else days[i - 1].TurnOff();
         }
     }
 

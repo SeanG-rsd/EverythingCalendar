@@ -113,8 +113,11 @@ public class DailyGoalList : MonoBehaviour
 
         for (int i = 0; i < currentInfo.numberOfGoals; i++)
         {
-            goalsToday += currentInfo.numberPerDay[i];
-            progress += currentInfo.thisDaysProgress[i];
+            if (currentInfo.thisWeeksProgress[i] < currentInfo.numberPerWeek[i])
+            {
+                goalsToday += currentInfo.numberPerDay[i];
+                progress += currentInfo.thisDaysProgress[i];
+            }
         }
         // daily progress bar
         float progressToday = progress / (float)goalsToday;

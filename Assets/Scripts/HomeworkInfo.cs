@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 [Serializable]
 
@@ -54,16 +55,5 @@ public class HomeworkInfo
         dueDates[numberOfAssignments] = "";
         subject[numberOfAssignments] = "";
         predictedHours[numberOfAssignments] = 0;
-    }
-
-    public void AddNewSubject(string name)
-    {
-        subjects[numberOfSubjects] = name;
-        numberOfSubjects++;
-    }
-
-    public void RemoveSubject(string subject)
-    {
-
     }
 }

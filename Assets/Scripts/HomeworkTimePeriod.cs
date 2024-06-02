@@ -26,7 +26,19 @@ public class HomeworkTimePeriod : MonoBehaviour
     public void AddNewAssignmnet(GameObject assignmnet)
     {
         assignmentList.Add(assignmnet.GetComponent<Assignment>());
+        assignmnet.GetComponent<Assignment>().SetTimePeriod(numbersOfDaysInAdvance);
         assignmnet.transform.SetParent(transform);
+    }
+
+    public void RemoveAssignment(Assignment assignmnet)
+    {
+        assignmentList.Remove(assignmnet);
+        Destroy(assignmnet.gameObject);
+    }
+
+    public int GetAssignmentCount()
+    {
+        return assignmentList.Count;
     }
 
     public Assignment GetAssignment(string assignmentName)

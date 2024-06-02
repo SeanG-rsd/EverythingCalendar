@@ -11,24 +11,27 @@ public class Assignment : MonoBehaviour
     [SerializeField] private Image subjectImage;
 
     public string assignmentName;
-    private int index;
+    private int listIndex;
 
-    public static Action<int, string> OnViewAssignment = delegate { };
+    public int setTimePeriod;
 
-    public void Initialize(string name, Color subjectColor, DateTime dueDate)
+    public static Action<int, Assignment> OnViewAssignment = delegate { };
+
+    public void Initialize(string name, string subject, DateTime dueDate, int listIndex, float hours)
     {
         //subjectImage.color = subjectColor;
         nameText.text = name;
         assignmentName = name;
-    }
-
-    public void SetIndex(int index)
-    {
-        this.index = index;
+        this.listIndex = listIndex;
     }
 
     public void OnClickAssignment()
     {
-        OnViewAssignment?.Invoke(index, assignmentName);
+        OnViewAssignment?.Invoke(listIndex, this);
+    }
+
+    public void SetTimePeriod(int period)
+    {
+        setTimePeriod = period;
     }
 }
