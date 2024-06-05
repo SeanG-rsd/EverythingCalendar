@@ -41,6 +41,11 @@ public class DailyGoalList : MonoBehaviour
 
     private int daysLeftInTheWeek;
 
+    // deleting and editing
+    private List<int> assignmentsRemovedThisSession;
+    private DailyGoal lastGoalViewed;
+    private int lastGoalEditIndex = -1;
+
     private void Start()
     {
         currentInfo = new DailyGoalInfo();
@@ -219,6 +224,13 @@ public class DailyGoalList : MonoBehaviour
     public void AddNewGoal()
     {
         currentInfo.AddNewGoal(goalNameInput.text, (int)numberPerWeek.value, Convert.ToInt32(numberPerDayInput.text));
+
+        GameObject newGoal = Instantiate(dailyGoalPrefab, goalContainer);
+        DailyGoal dailyGoal = newGoal.GetComponent<DailyGoal>();
+        dailyGoal.Initialize(goalNameInput.text, Convert.ToInt32(numberPerDayInput.text), 0, daysLeftInTheWeek, (int)numberPerWeek.value, dailyGoalList.Count);
+        dailyGoalList.Add(dailyGoal);
+
+        taskMaker.SetActive(false);
 
         UpdateJson();
     }

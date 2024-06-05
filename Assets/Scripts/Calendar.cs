@@ -7,14 +7,14 @@ using UnityEngine;
 public class Calendar : MonoBehaviour
 {
     [SerializeField] private Transform[] weeks;
-
     private List<Day> days;
 
     private DateTime lastLoadedMonth;
 
     [SerializeField] private TMP_Text monthYearTitle;
 
-    private string[] monthNames = new string[] { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
+    [Header("--Events---")]
+    [SerializeField] private GameObject dayViewer;
 
     private void Start()
     {

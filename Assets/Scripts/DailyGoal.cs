@@ -27,16 +27,12 @@ public class DailyGoal : MonoBehaviour
     [SerializeField] private RectTransform progressBarMask;
     private float maskWidth;
 
-    private void Awake()
-    {
-        maskWidth = progressBarMask.rect.width;
-    }
-
     public void Initialize(string goal, int perDay, int currentCount, int daysLeftInWeek, int goalsLeftInWeek, int index)
     {
         this.index = index;
         countPerDay = perDay;
         currentNumberOfCompletionsToday = currentCount;
+        maskWidth = progressBarMask.rect.width;
 
         goalText.text = goal;
         UpdateVisual();
@@ -104,7 +100,7 @@ public class DailyGoal : MonoBehaviour
     private void UpdateVisual()
     {
         completedCountText.text = currentNumberOfCompletionsToday.ToString() + "/" + countPerDay.ToString();
-
+        Debug.LogWarning((currentNumberOfCompletionsToday / (float)countPerDay) * maskWidth);
         progressBarMask.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, (currentNumberOfCompletionsToday / (float)countPerDay) * maskWidth);
     }
 }
