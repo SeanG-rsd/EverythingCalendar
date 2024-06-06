@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Calendar : MonoBehaviour
 {
@@ -15,9 +16,25 @@ public class Calendar : MonoBehaviour
 
     [Header("--Events---")]
     [SerializeField] private GameObject dayViewer;
+    [SerializeField] private GameObject eventMaker;
+
+    List<DayEvent> currentEvents;
+    [SerializeField] private Transform eventContainer;
+
+    [SerializeField] private TMP_InputField eventNameInput;
+    [SerializeField] private Toggle isAllDayToggle;
+    [SerializeField] private TMP_InputField eventLengthInput;
+    [SerializeField] private TMP_InputField eventStartTimeInput;
+
+    [SerializeField] private TMP_InputField eventNotesInput;
+
+    private List<int> eventsRemovedThisSession;
+    private Day lastDayEdited;
+    private int lastEventEdited = -1;
 
     private void Start()
     {
+        eventsRemovedThisSession = new List<int>();
         DateTime today = DateTime.Now;
 
         InitializeCalendar();
@@ -75,5 +92,15 @@ public class Calendar : MonoBehaviour
         }
 
         SetCalendar(newYear, newMonth);
+    }
+
+    public void ToggleEventMaker()
+    {
+        eventMaker.SetActive(!eventMaker.activeSelf);
+    }
+
+    private void HandleViewDay(int index)
+    {
+
     }
 }
