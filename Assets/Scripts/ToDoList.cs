@@ -22,11 +22,12 @@ public class ToDoList : MonoBehaviour
     [SerializeField] private GameObject makeTaskScreen;
     [SerializeField] private TMP_InputField taskName;
 
+    [SerializeField] private Toggle toggle;
+    [SerializeField] private Animator toggleAnimator;
+
 
     private void Awake()
     {
-        
-
         completedList = new List<GameObject>();
         unCompletedList = new List<GameObject>();
 
@@ -129,6 +130,12 @@ public class ToDoList : MonoBehaviour
         {
             task.SetActive(!showingUncompleted);
         }
+    }
+
+    public void ToggleView()
+    {
+        toggleAnimator.SetTrigger("Toggle");
+        SwapView(toggle.isOn);
     }
 
     public void MakeNewTask()

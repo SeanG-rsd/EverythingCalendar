@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,6 +16,7 @@ public class DailyGoalList : MonoBehaviour
     [SerializeField] private TMP_InputField goalNameInput;
     [SerializeField] private TMP_InputField numberPerDayInput;
     [SerializeField] private Slider numberPerWeek;
+    [SerializeField] private TMP_Text numberPerWeekText;
 
     [Header("---Editor---")]
     [SerializeField] private GameObject taskEditor;
@@ -22,6 +24,7 @@ public class DailyGoalList : MonoBehaviour
     [SerializeField] private TMP_InputField goalNameEdit;
     [SerializeField] private TMP_InputField numberPerDayEdit;
     [SerializeField] private Slider numberPerWeekEdit;
+    [SerializeField] private TMP_Text numberPerWeekEditText;
     [SerializeField] private RectTransform editorContentBox;
 
     [SerializeField] private GameObject chooseEdit;
@@ -43,14 +46,13 @@ public class DailyGoalList : MonoBehaviour
 
     // deleting and editing
     private List<int> assignmentsRemovedThisSession;
-    private DailyGoal lastGoalViewed;
-    private int lastGoalEditIndex = -1;
 
     private void Start()
     {
         currentInfo = new DailyGoalInfo();
         dailyGoalList = new List<DailyGoal>();
         editChoices = new List<EditChoice>();
+        assignmentsRemovedThisSession = new List<int>();
         progressBarMaskWidth = progressBarMask.rect.width;
         LoadFromJson();
         
@@ -76,11 +78,21 @@ public class DailyGoalList : MonoBehaviour
 
     private void HandleCompletedOne(int index, int completions)
     {
-        currentInfo.thisDaysProgress[index] = completions;
-        if (currentInfo.thisDaysProgress[index] == currentInfo.numberPerDay[index])
+        int newIndex = index;
+
+        foreach (int i in assignmentsRemovedThisSession)
         {
-            currentInfo.thisWeeksProgress[index]++;
-            dailyGoalList[index].UpdatePriority(daysLeftInTheWeek, currentInfo.numberPerWeek[index] - currentInfo.thisWeeksProgress[index]);
+            if (index > i)
+            {
+                newIndex--;
+            }
+        }
+
+        currentInfo.thisDaysProgress[newIndex] = completions;
+        if (currentInfo.thisDaysProgress[newIndex] == currentInfo.numberPerDay[newIndex])
+        {
+            currentInfo.thisWeeksProgress[newIndex]++;
+            dailyGoalList[newIndex].UpdatePriority(daysLeftInTheWeek, currentInfo.numberPerWeek[newIndex] - currentInfo.thisWeeksProgress[newIndex]);
             //Debug.Log("finished a task for the day");
         }
         UpdateJson();
@@ -89,13 +101,23 @@ public class DailyGoalList : MonoBehaviour
 
     private void HandleUncompletedOne(int index, int completions)
     {
-        if (currentInfo.thisDaysProgress[index] == currentInfo.numberPerDay[index])
+        int newIndex = index;
+
+        foreach (int i in assignmentsRemovedThisSession)
         {
-            currentInfo.thisWeeksProgress[index]--;
-            dailyGoalList[index].UpdatePriority(daysLeftInTheWeek, currentInfo.numberPerWeek[index] - currentInfo.thisWeeksProgress[index]);
+            if (index > i)
+            {
+                newIndex--;
+            }
+        }
+
+        if (currentInfo.thisDaysProgress[newIndex] == currentInfo.numberPerDay[newIndex])
+        {
+            currentInfo.thisWeeksProgress[newIndex]--;
+            dailyGoalList[newIndex].UpdatePriority(daysLeftInTheWeek, currentInfo.numberPerWeek[newIndex] - currentInfo.thisWeeksProgress[newIndex]);
             //Debug.Log(currentInfo.numberPerWeek[index] - currentInfo.thisWeeksProgress[index]);
         }
-        currentInfo.thisDaysProgress[index] = completions;
+        currentInfo.thisDaysProgress[newIndex] = completions;
         UpdateJson();
         UpdateProgressBar();
     }
@@ -105,10 +127,21 @@ public class DailyGoalList : MonoBehaviour
         chooseEdit.SetActive(false);
         editInfo.SetActive(true);
 
-        goalNameEdit.text = currentInfo.goalNames[index];
-        numberPerDayEdit.text = currentInfo.numberPerDay[index].ToString();
-        numberPerWeekEdit.value = currentInfo.numberPerWeek[index];
-        currentEditIndex = index;
+        int newIndex = index;
+
+        foreach (int i in assignmentsRemovedThisSession)
+        {
+            if (index > i)
+            {
+                newIndex--;
+            }
+        }
+
+        goalNameEdit.text = currentInfo.goalNames[newIndex];
+        numberPerDayEdit.text = currentInfo.numberPerDay[newIndex].ToString();
+        numberPerWeekEdit.value = currentInfo.numberPerWeek[newIndex];
+        currentEditIndex = newIndex;
+        ChangeNumberPerWeekEdit();
     }
 
     private void UpdateProgressBar()
@@ -261,20 +294,40 @@ public class DailyGoalList : MonoBehaviour
         taskEditor.SetActive(!taskEditor.activeSelf);
     }
 
+    public void ChangeNumberPerWeek()
+    {
+        numberPerWeekText.text = "^ Number Per Week : " + numberPerWeek.value;
+    }
+
+    public void ChangeNumberPerWeekEdit()
+    {
+        numberPerWeekEditText.text = "^ Number Per Week : " + numberPerWeekEdit.value;
+    }
+
     public void FinishedEditingGoal()
     {
-        currentInfo.goalNames[currentEditIndex] = goalNameEdit.text;
-        currentInfo.numberPerDay[currentEditIndex] = Convert.ToInt32(numberPerDayEdit.text);
-        currentInfo.thisDaysProgress[currentEditIndex] = 0;
-        currentInfo.numberPerWeek[currentEditIndex] = (int)numberPerWeekEdit.value;
+        int newIndex = currentEditIndex;
+
+        foreach (int i in assignmentsRemovedThisSession)
+        {
+            if (currentEditIndex > i)
+            {
+                newIndex--;
+            }
+        }
+
+        currentInfo.goalNames[newIndex] = goalNameEdit.text;
+        currentInfo.numberPerDay[newIndex] = Convert.ToInt32(numberPerDayEdit.text);
+        currentInfo.thisDaysProgress[newIndex] = 0;
+        currentInfo.numberPerWeek[newIndex] = (int)numberPerWeekEdit.value;
 
         chooseEdit.SetActive(true);
         editInfo.SetActive(false);
 
         // update all other lists
 
-        dailyGoalList[currentEditIndex].Initialize(goalNameEdit.text, currentInfo.numberPerDay[currentEditIndex], 0, daysLeftInTheWeek, currentInfo.numberPerWeek[currentEditIndex] - currentInfo.thisWeeksProgress[currentEditIndex], currentEditIndex);
-        editChoices[currentEditIndex].Initialize(goalNameEdit.text, currentEditIndex);
+        dailyGoalList[newIndex].Initialize(goalNameEdit.text, currentInfo.numberPerDay[newIndex], 0, daysLeftInTheWeek, currentInfo.numberPerWeek[newIndex] - currentInfo.thisWeeksProgress[newIndex], newIndex);
+        editChoices[newIndex].Initialize(goalNameEdit.text, newIndex);
 
         UpdateJson();
         UpdateProgressBar();
@@ -282,13 +335,25 @@ public class DailyGoalList : MonoBehaviour
 
     public void RemoveGoal()
     {
-        Destroy(dailyGoalList[currentEditIndex].gameObject);
-        Destroy(editChoices[currentEditIndex].gameObject);
+        int newIndex = currentEditIndex;
 
-        dailyGoalList.RemoveAt(currentEditIndex);
-        editChoices.RemoveAt(currentEditIndex);
+        foreach (int i in assignmentsRemovedThisSession)
+        {
+            if (currentEditIndex > i)
+            {
+                newIndex--;
+            }
+        }
 
-        currentInfo.RemoveGoal(currentEditIndex);
+        Destroy(dailyGoalList[newIndex].gameObject);
+        Destroy(editChoices[newIndex].gameObject);
+
+        assignmentsRemovedThisSession.Add(newIndex);
+
+        dailyGoalList.RemoveAt(newIndex);
+        editChoices.RemoveAt(newIndex);
+
+        currentInfo.RemoveGoal(newIndex);
 
         chooseEdit.SetActive(true);
         editInfo.SetActive(false);
