@@ -38,6 +38,8 @@ public class HomeworkManager : MonoBehaviour
     [SerializeField] private TMP_Text assignmentSubjectText;
     [SerializeField] private TMP_Text assignmentHoursText;
 
+    private string key = "HOMEWORK_KEY";
+
     private int lastAssignmentEditted = -1;
     private Assignment lastAssignmentViewed;
     private List<int> assignmentsRemovedThisSession;
@@ -96,12 +98,24 @@ public class HomeworkManager : MonoBehaviour
         currentInfo.lastLoadedDay = DateTime.Now.ToString();
 
         string json = JsonUtility.ToJson(currentInfo, true);
-        File.WriteAllText(Application.dataPath + "/HomeworkInfoFile.json", json);
+        PlayerPrefs.SetString(key, json);
     }
 
     private void LoadHomework()
     {
-        string json = File.ReadAllText(Application.dataPath + "/HomeworkInfoFile.json");
+        currentInfo = new HomeworkInfo();
+        string json = "";
+
+        if (PlayerPrefs.HasKey(key))
+        {
+            json = PlayerPrefs.GetString(key);
+        }
+        else
+        {
+            json = JsonUtility.ToJson(currentInfo, true);
+            PlayerPrefs.SetString(key, json);
+        }
+
         currentInfo = JsonUtility.FromJson<HomeworkInfo>(json);
     }
 

@@ -44,6 +44,8 @@ public class DailyGoalList : MonoBehaviour
 
     private int daysLeftInTheWeek;
 
+    private string key = "DAILY_GOAL_KEY";
+
     // deleting and editing
     private List<int> assignmentsRemovedThisSession;
 
@@ -273,12 +275,27 @@ public class DailyGoalList : MonoBehaviour
         currentInfo.lastLoadedDay = DateTime.Now.ToString();
 
         string json = JsonUtility.ToJson(currentInfo, true);
-        File.WriteAllText(Application.dataPath + "/DailyInfoFile.json", json);
+        //File.WriteAllText(Application.dataPath + "/DailyInfoFile.json", json);
+        PlayerPrefs.SetString(key, json);
     }
 
     public void LoadFromJson()
     {
-        string json = File.ReadAllText(Application.dataPath + "/DailyInfoFile.json");
+        currentInfo = new DailyGoalInfo();
+        string json = "";
+
+        if (PlayerPrefs.HasKey(key))
+        {
+            json = PlayerPrefs.GetString(key);
+        }
+        else
+        {
+            json = JsonUtility.ToJson(currentInfo, true);
+            PlayerPrefs.SetString(key, json);
+        }
+
+        Debug.Log(json);
+
         currentInfo = JsonUtility.FromJson<DailyGoalInfo>(json);
     }
 
