@@ -171,7 +171,7 @@ public class DailyGoalList : MonoBehaviour
 
         todayText.text = dateTime.ToString("MMM dd, yyyy");
 
-        daysLeftInTheWeek = 7 - (dateTime.DayOfWeek == 0 ? 1 : (int)dateTime.DayOfWeek - 1);
+        //daysLeftInTheWeek = 7 - (dateTime.DayOfWeek == 0 ? 1 : (int)dateTime.DayOfWeek - 1);
         Debug.Log(daysLeftInTheWeek);
 
         if (lastSave.DayOfYear < dateTime.DayOfYear && lastSave.Year == dateTime.Year)
@@ -230,7 +230,6 @@ public class DailyGoalList : MonoBehaviour
         for (int i = 0; i < currentInfo.numberOfGoals; i++)
         {
             // update priority for new day
-            Debug.Log(i);
             dailyGoalList[i].NewDay(daysLeftInTheWeek, currentInfo.numberPerWeek[i] - currentInfo.thisWeeksProgress[i]);
         }
 
@@ -265,9 +264,15 @@ public class DailyGoalList : MonoBehaviour
         dailyGoal.Initialize(goalNameInput.text, Convert.ToInt32(numberPerDayInput.text), 0, daysLeftInTheWeek, (int)numberPerWeek.value, dailyGoalList.Count);
         dailyGoalList.Add(dailyGoal);
 
+        GameObject newChoice = Instantiate(choicePrefab, editorContentBox);
+        EditChoice editChoice = newChoice.GetComponent<EditChoice>();
+        editChoice.Initialize(goalNameInput.text, currentInfo.numberOfGoals - 1);
+        editChoices.Add(editChoice);
+
         taskMaker.SetActive(false);
 
         UpdateJson();
+        UpdateProgressBar();
     }
 
     private void UpdateJson()
@@ -295,6 +300,7 @@ public class DailyGoalList : MonoBehaviour
         }
 
         Debug.Log(json);
+        daysLeftInTheWeek = 7 - (DateTime.Now.DayOfWeek == 0 ? 1 : (int)DateTime.Now.DayOfWeek - 1);
 
         currentInfo = JsonUtility.FromJson<DailyGoalInfo>(json);
     }
