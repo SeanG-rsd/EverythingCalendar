@@ -42,20 +42,28 @@ public class DailyGoalList : MonoBehaviour
     [SerializeField] private TMP_Text progressPercentText;
     private List<DailyGoal> dailyGoalList;
 
+    [Header("---Week View---")]
+    [SerializeField] private Toggle viewToggle;
+    [SerializeField] private Animator toggleAnim;
+
     private int daysLeftInTheWeek;
 
     private string key = "DAILY_GOAL_KEY";
 
     // deleting and editing
     private List<int> assignmentsRemovedThisSession;
+    int dayOfWeek;
 
     private void Start()
     {
+        dayOfWeek = DateTime.Now.DayOfWeek == 0 ? 6 : (int)DateTime.Now.DayOfWeek - 1;
+
         currentInfo = new DailyGoalInfo();
         dailyGoalList = new List<DailyGoal>();
         editChoices = new List<EditChoice>();
         assignmentsRemovedThisSession = new List<int>();
         progressBarMaskWidth = progressBarMask.rect.width;
+
         LoadFromJson();
         
         LoadGoals();
@@ -69,6 +77,7 @@ public class DailyGoalList : MonoBehaviour
         DailyGoal.OnClickCompleted += HandleCompletedOne;
         DailyGoal.OnClickUndo += HandleUncompletedOne;
         EditChoice.OnChooseEdit += HandleChooseToEdit;
+        DailyGoal.OnToggleGoal += HandleToggleDayProgress;
     }
 
     private void OnDestroy()
@@ -76,6 +85,7 @@ public class DailyGoalList : MonoBehaviour
         DailyGoal.OnClickCompleted -= HandleCompletedOne;
         DailyGoal.OnClickUndo -= HandleUncompletedOne;
         EditChoice.OnChooseEdit -= HandleChooseToEdit;
+        DailyGoal.OnToggleGoal -= HandleToggleDayProgress;
     }
 
     private void HandleCompletedOne(int index, int completions)
@@ -95,7 +105,8 @@ public class DailyGoalList : MonoBehaviour
         {
             currentInfo.thisWeeksProgress[newIndex]++;
             dailyGoalList[newIndex].UpdatePriority(daysLeftInTheWeek, currentInfo.numberPerWeek[newIndex] - currentInfo.thisWeeksProgress[newIndex]);
-            //Debug.Log("finished a task for the day");
+
+            ToggleTodayWeekValue(newIndex, 1, dayOfWeek);
         }
         UpdateJson();
         UpdateProgressBar();
@@ -117,11 +128,30 @@ public class DailyGoalList : MonoBehaviour
         {
             currentInfo.thisWeeksProgress[newIndex]--;
             dailyGoalList[newIndex].UpdatePriority(daysLeftInTheWeek, currentInfo.numberPerWeek[newIndex] - currentInfo.thisWeeksProgress[newIndex]);
-            //Debug.Log(currentInfo.numberPerWeek[index] - currentInfo.thisWeeksProgress[index]);
+            
+            ToggleTodayWeekValue(newIndex, 0, dayOfWeek);
         }
         currentInfo.thisDaysProgress[newIndex] = completions;
         UpdateJson();
         UpdateProgressBar();
+    }
+
+    private void HandleToggleDayProgress(int index, int day, bool value)
+    {
+        int newIndex = index;
+
+        foreach (int i in assignmentsRemovedThisSession)
+        {
+            if (index > i)
+            {
+                newIndex--;
+            }
+        }
+
+        currentInfo.thisWeeksProgress[newIndex] += value ? 1 : -1;
+
+        ToggleTodayWeekValue(newIndex, value ? 1 : 0, day);
+        UpdateJson();
     }
 
     private void HandleChooseToEdit(int index)
@@ -170,9 +200,6 @@ public class DailyGoalList : MonoBehaviour
         DateTime dateTime = DateTime.Now;
 
         todayText.text = dateTime.ToString("MMM dd, yyyy");
-
-        //daysLeftInTheWeek = 7 - (dateTime.DayOfWeek == 0 ? 1 : (int)dateTime.DayOfWeek - 1);
-        Debug.Log(daysLeftInTheWeek);
 
         if (lastSave.DayOfYear < dateTime.DayOfYear && lastSave.Year == dateTime.Year)
         {
@@ -244,6 +271,7 @@ public class DailyGoalList : MonoBehaviour
         for (int i = 0; i < currentInfo.numberOfGoals; i++)
         {
             currentInfo.thisWeeksProgress[i] = 0;
+            currentInfo.thisWeeksValue[i] = 0;
 
             // update priority for new day
             dailyGoalList[i].NewDay(daysLeftInTheWeek, currentInfo.numberPerWeek[i] - currentInfo.thisWeeksProgress[i]);
@@ -261,7 +289,7 @@ public class DailyGoalList : MonoBehaviour
 
         GameObject newGoal = Instantiate(dailyGoalPrefab, goalContainer);
         DailyGoal dailyGoal = newGoal.GetComponent<DailyGoal>();
-        dailyGoal.Initialize(goalNameInput.text, Convert.ToInt32(numberPerDayInput.text), 0, daysLeftInTheWeek, (int)numberPerWeek.value, dailyGoalList.Count);
+        dailyGoal.Initialize(goalNameInput.text, Convert.ToInt32(numberPerDayInput.text), 0, daysLeftInTheWeek, (int)numberPerWeek.value, dailyGoalList.Count, 0);
         dailyGoalList.Add(dailyGoal);
 
         GameObject newChoice = Instantiate(choicePrefab, editorContentBox);
@@ -349,7 +377,7 @@ public class DailyGoalList : MonoBehaviour
 
         // update all other lists
 
-        dailyGoalList[newIndex].Initialize(goalNameEdit.text, currentInfo.numberPerDay[newIndex], 0, daysLeftInTheWeek, currentInfo.numberPerWeek[newIndex] - currentInfo.thisWeeksProgress[newIndex], newIndex);
+        dailyGoalList[newIndex].Initialize(goalNameEdit.text, currentInfo.numberPerDay[newIndex], 0, daysLeftInTheWeek, currentInfo.numberPerWeek[newIndex] - currentInfo.thisWeeksProgress[newIndex], newIndex, currentInfo.thisWeeksValue[newIndex]);
         editChoices[newIndex].Initialize(goalNameEdit.text, newIndex);
 
         UpdateJson();
@@ -385,14 +413,24 @@ public class DailyGoalList : MonoBehaviour
         UpdateProgressBar();
     }
 
+    public void SwapGoalView()
+    {
+        toggleAnim.SetTrigger("Toggle");
+        for (int i = 0; i < currentInfo.numberOfGoals; i++)
+        {
+            dailyGoalList[i].SwapView(viewToggle.isOn);
+        }
+    }
+
     private void LoadGoals()
     {
         for (int i = 0; i < currentInfo.numberOfGoals; i++)
         {
             GameObject newGoal = Instantiate(dailyGoalPrefab, goalContainer);
             DailyGoal dailyGoal = newGoal.GetComponent<DailyGoal>();
-            dailyGoal.Initialize(currentInfo.goalNames[i], currentInfo.numberPerDay[i], currentInfo.thisDaysProgress[i], daysLeftInTheWeek, currentInfo.numberPerWeek[i] - currentInfo.thisWeeksProgress[i], i);
             dailyGoalList.Add(dailyGoal);
+            dailyGoal.Initialize(currentInfo.goalNames[i], currentInfo.numberPerDay[i], currentInfo.thisDaysProgress[i], daysLeftInTheWeek, currentInfo.numberPerWeek[i] - currentInfo.thisWeeksProgress[i], i, currentInfo.thisWeeksValue[i]);
+            
         }
     }
 
@@ -405,5 +443,26 @@ public class DailyGoalList : MonoBehaviour
             editChoice.Initialize(currentInfo.goalNames[i], i);
             editChoices.Add(editChoice);
         }
+    }
+
+    private void ToggleTodayWeekValue(int index, int can, int day)
+    {
+        int newValue = 0;
+        int original = currentInfo.thisWeeksValue[index];
+        for (int i = 6; i >= 0; i--)
+        {
+            if (day != i)
+            {
+                newValue += (1 << i) & original;
+            }
+            else
+            {
+                newValue += (can >> day);// * (can == 0 ? -1 : 1);
+            }
+        }
+
+        Debug.Log("toggle : " + newValue);
+        currentInfo.thisWeeksValue[index] = newValue;
+        dailyGoalList[index].NewWeekValue(newValue);
     }
 }

@@ -8,6 +8,7 @@ public class DailyGoalInfo
     public int numberOfGoals;
     public int[] numberPerWeek;
     public int[] thisWeeksProgress;
+    public int[] thisWeeksValue; // 0000000, SSMTWTF
 
     public int[] numberPerDay;
     public int[] thisDaysProgress;
@@ -23,6 +24,7 @@ public class DailyGoalInfo
         thisWeeksProgress = new int[listSize];
         thisDaysProgress = new int[listSize];
         numberPerDay = new int[listSize];
+        thisWeeksValue = new int[listSize];
     }
 
     public void AddNewGoal(string goalName, int perWeek, int perDay)
@@ -32,6 +34,7 @@ public class DailyGoalInfo
         thisWeeksProgress[numberOfGoals] = 0;
         numberPerDay[numberOfGoals] = perDay;
         thisDaysProgress[numberOfGoals] = 0;
+        thisWeeksValue[numberOfGoals] = 0;
         numberOfGoals++;
     }
 
@@ -49,6 +52,7 @@ public class DailyGoalInfo
             numberPerDay[i - 1] = numberPerDay[i];
             thisDaysProgress[i - 1] = thisDaysProgress[i];
             thisWeeksProgress[i - 1] = thisWeeksProgress[i];
+            thisWeeksValue[i - 1] = thisWeeksValue[i];
         }
 
         numberOfGoals--;
@@ -57,6 +61,7 @@ public class DailyGoalInfo
         numberPerDay[numberOfGoals] = 0;
         thisWeeksProgress[numberOfGoals] = 0;
         thisDaysProgress[numberOfGoals] = 0;
+        thisWeeksValue[numberOfGoals] = 0;
         
     }
 }
