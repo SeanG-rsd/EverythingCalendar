@@ -12,18 +12,15 @@ public class WeekViewDay : MonoBehaviour
 
     bool expectChange = false;
 
-    public void Toggle(bool value)
+    public void Toggle(bool value, bool isViableDay)
     {
-        //expectChange = value;
         toggleObj.GetComponent<Toggle>().isOn = value;
+        toggleObj.SetActive(isViableDay);
     }
 
     public void OnToggle()
     {
-        if (!expectChange)
-        {
-            OnToggleDay?.Invoke(toggleObj.GetComponent<Toggle>().isOn, this);
-        }
-        else { expectChange = false; }
+        Debug.Log("non click");
+        OnToggleDay?.Invoke(toggleObj.GetComponent<Toggle>().isOn, this);
     }
 }

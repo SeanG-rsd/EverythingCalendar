@@ -9,6 +9,7 @@ using UnityEngine.UI;
 public class DailyGoal : MonoBehaviour
 {
     [SerializeField] private TMP_Text goalText;
+    [SerializeField] private TMP_Text weekGoalText;
 
     private int countPerDay;
     [SerializeField] private TMP_Text completedCountText;
@@ -27,7 +28,7 @@ public class DailyGoal : MonoBehaviour
     private int weekValue;
 
     [SerializeField] private RectTransform progressBarMask;
-    private float maskWidth;
+    private float maskWidth = 0;
 
     [SerializeField] private GameObject dayView;
 
@@ -41,6 +42,7 @@ public class DailyGoal : MonoBehaviour
     private void Awake()
     {
         WeekViewDay.OnToggleDay += HandleToggleView;
+        maskWidth = progressBarMask.rect.width;
     }
 
     private void OnDestroy()
@@ -56,9 +58,9 @@ public class DailyGoal : MonoBehaviour
         countPerDay = perDay;
         this.weekValue = weekValue;
         currentNumberOfCompletionsToday = currentCount;
-        maskWidth = progressBarMask.rect.width;
 
         goalText.text = goal;
+        weekGoalText.text = goal;
         UpdateVisual();
 
         UpdatePriority(daysLeftInWeek, goalsLeftInWeek);
@@ -74,19 +76,19 @@ public class DailyGoal : MonoBehaviour
         int numberOfFreeDays = daysLeftInWeek - goalsLeftInWeek;
         //Debug.Log("update priority for " + goalText.text + ": " + daysLeftInWeek);
 
-        if (goalsLeftInWeek == 0 || IsCompleted())
+        if (goalsLeftInWeek <= 0 || IsCompleted())
         {
             urgencyImage.color = urgencyChart[0];
         }
-        else if (numberOfFreeDays <= 0)
+        else if (numberOfFreeDays <= 1)
         {
             urgencyImage.color = urgencyChart[1];
         }
-        else if (numberOfFreeDays == 1)
+        else if (numberOfFreeDays == 2)
         {
             urgencyImage.color = urgencyChart[2];
         }
-        else if (numberOfFreeDays >= 2)
+        else if (numberOfFreeDays >= 3)
         {
             urgencyImage.color = urgencyChart[3];
         }
@@ -120,9 +122,23 @@ public class DailyGoal : MonoBehaviour
         }
     }
 
+    public void Toggle(bool completed, int goalsLeft)
+    {
+        if (completed) currentNumberOfCompletionsToday = countPerDay;
+        else currentNumberOfCompletionsToday = 0;
+
+        UpdateVisual();
+        UpdatePriority(7 - dayOfWeek, goalsLeft);
+    }
+
     public void NewWeekValue(int value)
     {
         weekValue = value;
+    }
+
+    public void UpdateToggle()
+    {
+        UpdateVisual();
     }
 
     private void UpdateVisual()
@@ -132,17 +148,17 @@ public class DailyGoal : MonoBehaviour
         progressBarMask.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, (currentNumberOfCompletionsToday / (float)countPerDay) * maskWidth);
 
         int value = weekValue;
-        Debug.Log("update");
+
         // week
         for(int i = 0; i < 7; i++)
         {
             if (((value >> i) & 1) == 1)
             {
-                daysOfWeek[i].Toggle(true);
+                daysOfWeek[i].Toggle(true, i <= dayOfWeek);
             }
             else
             {
-                daysOfWeek[i].Toggle(false);
+                daysOfWeek[i].Toggle(false, i <= dayOfWeek);
             }
         }
     }
@@ -151,8 +167,6 @@ public class DailyGoal : MonoBehaviour
     {
         dayView.SetActive(isDayView);
         weekView.SetActive(!isDayView);
-
-        //UpdateVisual();
     }
 
     private void HandleToggleView(bool state, WeekViewDay day)
