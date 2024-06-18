@@ -55,7 +55,6 @@ public class DailyGoalList : MonoBehaviour
     // deleting and editing
     private List<int> assignmentsRemovedThisSession;
     int dayOfWeek;
-    bool ready = false;
 
     private void Start()
     {
@@ -68,13 +67,12 @@ public class DailyGoalList : MonoBehaviour
         progressBarMaskWidth = progressBarMask.rect.width;
 
         LoadFromJson();
+
+        UpdateDay(currentInfo.lastLoadedDay);
+        //NewWeek();
         
         LoadGoals();
         LoadEditor();
-
-        UpdateDay(currentInfo.lastLoadedDay);
-
-        ready = true;
     }
 
     private void Awake()
@@ -155,11 +153,15 @@ public class DailyGoalList : MonoBehaviour
             }
         }
 
+        Debug.Log("toggleDayProgress");
         ToggleTodayWeekValue(newIndex, value ? 1 : 0, day);
 
         currentInfo.thisWeeksProgress[newIndex] += value ? 1 : -1;
-        dailyGoalList[newIndex].Toggle(value, currentInfo.numberPerWeek[newIndex] - currentInfo.thisWeeksProgress[newIndex]);
-        currentInfo.thisDaysProgress[newIndex] = value ? currentInfo.numberPerDay[newIndex] : 0;
+        if (day == dayOfWeek)
+        {
+            dailyGoalList[newIndex].Toggle(value, currentInfo.numberPerWeek[newIndex] - currentInfo.thisWeeksProgress[newIndex]);
+            currentInfo.thisDaysProgress[newIndex] = value ? currentInfo.numberPerDay[newIndex] : 0;
+        }
 
         UpdateJson();
         UpdateProgressBar();
@@ -268,7 +270,7 @@ public class DailyGoalList : MonoBehaviour
         for (int i = 0; i < currentInfo.numberOfGoals; i++)
         {
             // update priority for new day
-            dailyGoalList[i].NewDay(daysLeftInTheWeek, currentInfo.numberPerWeek[i] - currentInfo.thisWeeksProgress[i]);
+            //dailyGoalList[i].NewDay(daysLeftInTheWeek, currentInfo.numberPerWeek[i] - currentInfo.thisWeeksProgress[i]);
         }
 
         // update priority for new day
@@ -287,7 +289,7 @@ public class DailyGoalList : MonoBehaviour
             currentInfo.thisWeeksValue[i] = 0;
 
             // update priority for new day
-            dailyGoalList[i].NewDay(daysLeftInTheWeek, currentInfo.numberPerWeek[i] - currentInfo.thisWeeksProgress[i]);
+            //dailyGoalList[i].NewDay(daysLeftInTheWeek, currentInfo.numberPerWeek[i] - currentInfo.thisWeeksProgress[i]);
         }
 
         // update priority for new day
@@ -480,11 +482,12 @@ public class DailyGoalList : MonoBehaviour
             }
             else
             {
-                newValue += (can >> day);// * (can == 0 ? -1 : 1);
+              
+                newValue += (can << day);// * (can == 0 ? -1 : 1);
             }
         }
 
-        //Debug.Log("toggle : " + newValue);
+        Debug.Log("toggle : " + newValue);
         currentInfo.thisWeeksValue[index] = newValue;
         dailyGoalList[index].NewWeekValue(newValue);
     }

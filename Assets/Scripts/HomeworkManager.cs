@@ -148,7 +148,7 @@ public class HomeworkManager : MonoBehaviour
         {
             if (DateTime.Now.DayOfYear <= DateTime.Parse(currentInfo.dueDates[i]).DayOfYear)
             {
-                Debug.Log("new ");
+                //Debug.Log("new ");
                 AddNewAssignment(currentInfo.homeworkNames[i], DateTime.Parse(currentInfo.dueDates[i]), currentInfo.subject[i], currentInfo.predictedHours[i], i);
             }
             else // remove assignment
@@ -161,7 +161,7 @@ public class HomeworkManager : MonoBehaviour
     private void AddNewAssignment(string name, DateTime dueDate, string subject, float hours, int assignmentNumber)
     {
         int daysUntilDue = dueDate.DayOfYear - DateTime.Now.DayOfYear;
-        Debug.Log(daysUntilDue);
+        //Debug.Log(daysUntilDue);
 
         GameObject assignment = Instantiate(assignmentPrefab);
         assignment.GetComponent<Assignment>().Initialize(name, subject, dueDate, assignmentNumber, hours);
@@ -179,7 +179,7 @@ public class HomeworkManager : MonoBehaviour
             }
         }
 
-        Debug.Log(timePeriod);
+        //Debug.Log(timePeriod);
         UpdateHomework();
 
         for (int i = timePeriods.Count - 1; i >= 0; i--)
@@ -192,7 +192,7 @@ public class HomeworkManager : MonoBehaviour
             }
             else if (timePeriod > timePeriods[i].GetDays()) // expected time period does not exist must add a new one
             {
-                Debug.Log("new time period : " + i);
+                //Debug.Log("new time period : " + i);
                 GameObject newTimePeriod = Instantiate(timePeriodPrefab, timePeriodContainer);
                 newTimePeriod.GetComponent<HomeworkTimePeriod>().Initialize(timePeriod, timePeriodNames[index], timePeriodColors[index]);
                 timePeriods.Insert(i + 1, newTimePeriod.GetComponent<HomeworkTimePeriod>());

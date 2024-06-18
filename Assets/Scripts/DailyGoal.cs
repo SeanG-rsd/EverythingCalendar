@@ -80,15 +80,15 @@ public class DailyGoal : MonoBehaviour
         {
             urgencyImage.color = urgencyChart[0];
         }
-        else if (numberOfFreeDays <= 1)
+        else if (numberOfFreeDays <= 0)
         {
             urgencyImage.color = urgencyChart[1];
         }
-        else if (numberOfFreeDays == 2)
+        else if (numberOfFreeDays == 1)
         {
             urgencyImage.color = urgencyChart[2];
         }
-        else if (numberOfFreeDays >= 3)
+        else if (numberOfFreeDays >= 2)
         {
             urgencyImage.color = urgencyChart[3];
         }

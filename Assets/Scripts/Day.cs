@@ -16,7 +16,7 @@ public class Day : MonoBehaviour
     public void SetActive(int day, bool isCurrentDay)
     {
         color.color = isCurrentDay ? currentDayColor : OnColor;
-        Debug.Log(isCurrentDay);
+        //Debug.Log(isCurrentDay);
         dayNumber.text = day.ToString();
     }
 
