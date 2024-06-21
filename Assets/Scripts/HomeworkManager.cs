@@ -30,6 +30,7 @@ public class HomeworkManager : MonoBehaviour
     [SerializeField] private TMP_Dropdown monthDue;
     [SerializeField] private TMP_Dropdown dayDue;
     [SerializeField] private TMP_Dropdown predictedHours;
+    [SerializeField] private GameObject saveButton;
 
     [Header("---Assignment Viewer")]
     [SerializeField] private TMP_InputField assignmentNotesInput;
@@ -98,6 +99,7 @@ public class HomeworkManager : MonoBehaviour
         currentInfo.lastLoadedDay = DateTime.Now.ToString();
 
         string json = JsonUtility.ToJson(currentInfo, true);
+        Debug.Log(json);
         PlayerPrefs.SetString(key, json);
     }
 
@@ -188,6 +190,7 @@ public class HomeworkManager : MonoBehaviour
             {
                 timePeriods[i].AddNewAssignmnet(assignment);
                 //assignment.GetComponent<Assignment>().SetIndex(i);
+                assignment.transform.localScale = Vector3.one;
                 return;
             }
             else if (timePeriod > timePeriods[i].GetDays()) // expected time period does not exist must add a new one
@@ -199,6 +202,7 @@ public class HomeworkManager : MonoBehaviour
                 newTimePeriod.transform.SetSiblingIndex(i + 1);
                 newTimePeriod.GetComponent<HomeworkTimePeriod>().AddNewAssignmnet(assignment);
                 //assignment.GetComponent<Assignment>().SetIndex(i + 1);
+                assignment.transform.localScale = Vector3.one;
                 return;
             }
         }
@@ -209,18 +213,30 @@ public class HomeworkManager : MonoBehaviour
         tp.transform.SetSiblingIndex(0);
         //assignment.GetComponent<Assignment>().SetIndex(0);
         tp.GetComponent<HomeworkTimePeriod>().AddNewAssignmnet(assignment);
+
+        assignment.transform.localScale = Vector3.one;
     }
 
     public void MonthChanged()
     {
         int checkMonth = monthDue.value + DateTime.Now.Month - 1;
 
+        if (monthDue.value == 0)
+        {
+            dayDue.gameObject.SetActive(false);
+        }
+        else
+        {
+            dayDue.gameObject.SetActive(true);
+        }
+
         dayDue.ClearOptions();
         int numberOfDaysInMonth = DateTime.DaysInMonth(DateTime.Now.Year, checkMonth);
 
         List<TMP_Dropdown.OptionData> list = new List<TMP_Dropdown.OptionData>() { new TMP_Dropdown.OptionData("Day") };
+        int dayOfMonth = DateTime.Now.Day;
 
-        for (int i = 1; i <= numberOfDaysInMonth; i++)
+        for (int i = dayOfMonth; i <= numberOfDaysInMonth; i++)
         {
             list.Add(new TMP_Dropdown.OptionData(i.ToString()));
         }
@@ -228,12 +244,24 @@ public class HomeworkManager : MonoBehaviour
         dayDue.AddOptions(list);
     }
 
+    public void CheckForAssignmentCompletion()
+    {
+        if (dayDue.value == 0 || subject.text == "" || assignmentName.text == "" || predictedHours.value == 0)
+        {
+            saveButton.SetActive(false);
+        }
+        else
+        {
+            saveButton.SetActive(true);
+        }
+    }
+
     public void FinishMakingAssignment()
     {
-        DateTime dueDate = new DateTime(DateTime.Now.Year, monthDue.value + DateTime.Now.Month - 1, dayDue.value);
+        DateTime dueDate = new DateTime(DateTime.Now.Year, monthDue.value + DateTime.Now.Month - 1, DateTime.Now.Day + dayDue.value - 1);
 
-        AddNewAssignment(assignmentName.text, dueDate, subject.text, predeictedHourPossibilities[predictedHours.value - 1], currentInfo.numberOfAssignments);
         currentInfo.AddNewAssignment(assignmentName.text, dueDate.ToString(), subject.text, predeictedHourPossibilities[predictedHours.value - 1]);
+        AddNewAssignment(assignmentName.text, dueDate, subject.text, predeictedHourPossibilities[predictedHours.value - 1], currentInfo.numberOfAssignments);
 
         ToggleAssignmentMaker();
     }
@@ -248,6 +276,8 @@ public class HomeworkManager : MonoBehaviour
             monthDue.value = 0;
             dayDue.value = 0;
             predictedHours.value = 0;
+            dayDue.gameObject.SetActive(false);
+            saveButton.SetActive(false);
         }
     }
 

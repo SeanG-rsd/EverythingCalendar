@@ -157,6 +157,7 @@ public class DailyGoalList : MonoBehaviour
         ToggleTodayWeekValue(newIndex, value ? 1 : 0, day);
 
         currentInfo.thisWeeksProgress[newIndex] += value ? 1 : -1;
+        dailyGoalList[newIndex].UpdatePriority(daysLeftInTheWeek, currentInfo.numberPerWeek[newIndex] - currentInfo.thisWeeksProgress[newIndex]);
         if (day == dayOfWeek)
         {
             dailyGoalList[newIndex].Toggle(value, currentInfo.numberPerWeek[newIndex] - currentInfo.thisWeeksProgress[newIndex]);
